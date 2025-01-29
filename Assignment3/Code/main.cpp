@@ -1,5 +1,6 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <algorithm>
 
 #include "global.hpp"
 #include "rasterizer.hpp"
@@ -169,7 +170,14 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
-        
+        Eigen::Vector3f ambient;
+        Eigen::Vector3f diffuse;
+        Eigen::Vector3f specular;
+
+        ambient = ka.cwiseProduct(amb_light_intensity);
+        diffuse = kd.cwiseProduct(light.intensity / pow((light.position - point).norm(),2)) * std::max(0.f, normal.normalized().dot((light.position - point).normalized()));
+        specular = ks.cwiseProduct(light.intensity / pow((light.position - point).norm(),2)) * pow(std::max(0.f, normal.normalized().dot((eye_pos + light.position - 2 * point).normalized())),p);
+        result_color += ambient + diffuse + specular;
     }
 
     return result_color * 255.f;
